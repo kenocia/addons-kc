@@ -77,32 +77,32 @@ const PENDING_ITEMS = [
   {
     num: "01",
     title: "Nombre técnico definitivo del UDF “Descripción Padre” y si su captura es manual o derivada.",
-    owner: "Jorge / equipo Kenocia",
+    owner: "Jorge Urbina",
   },
   {
     num: "02",
     title: "Confirmar el significado completo de los valores posibles de U_ShopifyStatus, más allá de “S”.",
-    owner: "Jorge / validación contra datos reales",
+    owner: "Jorge Urbina",
   },
   {
     num: "03",
     title: "Regla definitiva de Active / Draft / Archived ante stock 0, a nivel de variante o de producto completo.",
-    owner: "Jorge / negocio Van Heusen",
+    owner: "Jorge Urbina / negocio Van Heusen",
   },
   {
     num: "04",
     title: "Causa raíz de los sufijos -1/-2/-3 detectados en producción (probable SKU no enviado o duplicado en el payload).",
-    owner: "Cezar / Luis / Gilberto",
+    owner: "Jefree Gómez",
   },
   {
     num: "05",
     title: "Campo o tabla exacto de SAP B1 de donde se obtiene el “Reservado” para el cálculo de disponible.",
-    owner: "Jorge / ambiente SAP Van Heusen",
+    owner: "Jorge Urbina / ambiente SAP Van Heusen",
   },
   {
     num: "06",
     title: "Convención de nomenclatura de archivos en el bucket S3, para validar que Modelo+Color es suficiente y único.",
-    owner: "Jorge / equipo de desarrollo",
+    owner: "Gilberto Salguero",
   },
   {
     num: "07",
