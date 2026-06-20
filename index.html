@@ -29,17 +29,6 @@
     </nav>
     <span class="status-chip"><span class="dot"></span>En diseño</span>
   </div>
-  <div class="scope-bar">
-    <span class="scope-bar-label">Viendo el análisis bajo:</span>
-    <div class="scope-toggle" role="group" aria-label="Selector de alcance del análisis">
-      <button type="button" class="scope-btn scope-btn-vigente is-active" data-scope="vigente">
-        <span class="scope-dot"></span>Alcance vigente <span class="scope-time">· 5 días</span>
-      </button>
-      <button type="button" class="scope-btn scope-btn-ampliado" data-scope="ampliado">
-        <span class="scope-dot"></span>Color como variante <span class="scope-time">· +1.5 sem</span>
-      </button>
-    </div>
-  </div>
 </header>
 
 <main>
@@ -141,14 +130,15 @@
       <p class="eyebrow">02 &mdash; Decisión abierta</p>
       <h2>¿El color es del producto,<br>o es una variante?</h2>
       <p class="section-intro">
-        Esta decisión cambia la estructura, los procesos y el costo del resto del módulo.
-        Usa el selector de arriba <span class="mono">(Alcance vigente / Color como variante)</span>
-        para ver cómo se transforma cada sección de aquí en adelante según la opción elegida.
+        Elige una de las dos tarjetas &mdash; esa elección controla el resto del sitio:
+        la estructura del producto, los procesos del addon y el plan de trabajo cambian
+        para reflejar la decisión tomada.
       </p>
     </div>
 
     <div class="decision-grid">
-      <div class="decision-card decision-card-vigente" data-scope-card="vigente">
+      <button type="button" class="decision-card decision-card-vigente is-selected" data-scope-card="vigente">
+        <span class="decision-select-badge">✓ Seleccionada</span>
         <span class="decision-tag decision-tag-current">Alcance vigente</span>
         <h3>Color dentro del padre</h3>
         <p class="decision-time">5 días</p>
@@ -161,28 +151,36 @@
         <div class="decision-tradeoff decision-tradeoff-risk">
           <strong>Costo para el cliente final:</strong> ve "Navy" y "Blanco" del mismo blazer como dos fichas de producto separadas, no como un selector de color dentro de una sola ficha.
         </div>
-      </div>
+      </button>
 
-      <div class="decision-card decision-card-alt decision-card-ampliado" data-scope-card="ampliado">
+      <button type="button" class="decision-card decision-card-alt decision-card-ampliado" data-scope-card="ampliado">
+        <span class="decision-select-badge">✓ Seleccionada</span>
         <span class="decision-tag decision-tag-alt">Alcance ampliado</span>
         <h3>Color como variante real</h3>
-        <p class="decision-time">+1.5 semanas</p>
+        <p class="decision-time">~2 semanas (11 días)</p>
         <ul class="decision-list">
           <li>El padre agrupa solo por <span class="mono">Modelo</span> &mdash; un producto contiene todos sus colores y tallas.</li>
           <li>Shopify expone <strong>Talla y Color</strong> como opciones, con selector dentro de una sola ficha.</li>
           <li>Imágenes en S3 se buscan únicamente por <span class="mono">Modelo</span>.</li>
-          <li>Requiere una <strong>matriz de traducción</strong> código&#8209;color → nombre comercial (ej. <span class="mono">730</span> → "Navy"), porque el cliente final no reconoce códigos SAP.</li>
+          <li>Requiere un <strong>lookup en vivo</strong> contra la UDT de colores de SAP (ej. <span class="mono">730</span> → "Navy") dentro del Proceso&nbsp;2, porque el cliente final no reconoce códigos SAP.</li>
         </ul>
         <div class="decision-tradeoff decision-tradeoff-good">
-          <strong>Ya identificado:</strong> la matriz código→nombre de color puede construirse a partir de información que ya existe o es fácil de generar &mdash; esto reduce el riesgo de esta opción, aunque no el tiempo de implementación.
+          <strong>Confirmado:</strong> la UDT código→nombre de color ya existe en SAP &mdash; no hay que construirla, solo integrar el lookup. Esto reduce tanto el riesgo como parte del tiempo de esta opción frente a la estimación inicial. El addon toma control más amplio: gestiona color y talla como una sola jerarquía de variantes.
         </div>
-      </div>
+      </button>
     </div>
 
     <div class="callout callout-warning">
       <span class="callout-icon">!</span>
       <p><strong>Esta decisión define la clave de agrupación de todo el módulo</strong> &mdash; no es un ajuste posterior de bajo costo. Cambiar de alcance después de construido el Proceso&nbsp;1 (sección 03) implica rehacer la lógica de creación/actualización de productos, no solo agregar un campo.</p>
     </div>
+
+    <!-- GANTT -->
+    <div class="gantt-head">
+      <p class="eyebrow">Plan de trabajo bajo la opción seleccionada</p>
+      <h3 id="gantt-title">Color dentro del padre &mdash; 5 días hábiles</h3>
+    </div>
+    <div class="gantt" id="gantt"></div>
   </section>
 
   <!-- ESTRUCTURA PADRE / VARIANTE -->
@@ -236,15 +234,17 @@
         <p class="process-role">Escritura → Shopify</p>
         <p>Crea o actualiza el producto padre junto con sus variantes. El stock que se controla por hijo es el <strong>disponible real</strong>, no el stock físico bruto.</p>
         <div class="process-formula">
-          <span>Disponible</span> = <span class="mono">OITW</span> (físico) &minus; Reservado
+          <span>Disponible</span> = <span class="mono">OITW.OnHand</span> &minus; <span class="mono">OITW.IsCommited</span>
         </div>
+        <div class="process-key">Confirmado contra SAP B1 · filtrado por <span class="mono">WhsCode = 'A01'</span></div>
       </div>
 
-      <div class="process-card" tabindex="0">
+      <div class="process-card scope-section-inner" tabindex="0">
         <span class="process-num">02</span>
         <h3>Lectura de SKU, precio y stock</h3>
         <p class="process-role">Lectura ← SAP, por variante</p>
         <p>Recorre cada <span class="mono">ItemCode</span> y obtiene su precio de Lista&nbsp;02 y su disponible. Alimenta al Proceso&nbsp;1 y las actualizaciones periódicas de variantes ya existentes.</p>
+        <p class="scope-only scope-only-ampliado">Bajo este alcance, este proceso suma una tarea: por cada <span class="mono">ItemCode</span>, hace un <strong>lookup en vivo</strong> contra la UDT de colores de SAP para resolver el nombre comercial (ej. <span class="mono">730</span> → "Navy") que se enviará como opción de variante.</p>
         <div class="process-key">Clave: <span class="mono">ItemCode</span> completo</div>
       </div>
 

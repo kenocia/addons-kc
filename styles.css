@@ -142,133 +142,92 @@ a { color: inherit; }
 }
 
 /* ============================================================
-   Scope bar — selector global de alcance (vigente / ampliado)
+   Tinte de página completa según la decisión seleccionada.
+   data-scope vive en <html> para poder afectar variables globales
+   sin depender del orden de pintado del body.
    ============================================================ */
-.scope-bar {
-  border-top: 1px solid var(--line);
-  background: var(--bg-panel);
-  padding: 10px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
+html[data-scope="vigente"] {
+  --scope-color: var(--accent);
+  --scope-color-dim: var(--accent-dim);
+  --scope-glow: var(--accent-glow);
+}
+html[data-scope="ampliado"] {
+  --scope-color: var(--amber);
+  --scope-color-dim: #B97A1E;
+  --scope-glow: var(--amber-glow);
 }
 
-.scope-bar-label {
-  font-size: 12.5px;
-  color: var(--text-low);
-  font-family: var(--font-mono);
+body {
+  transition: background 0.4s ease;
+}
+html[data-scope="ampliado"] body {
+  background: radial-gradient(ellipse 90% 50% at 50% 0%, rgba(240,169,60,0.07), transparent 60%), var(--bg-base);
+}
+html[data-scope="vigente"] body {
+  background: radial-gradient(ellipse 90% 50% at 50% 0%, rgba(94,234,212,0.07), transparent 60%), var(--bg-base);
 }
 
-.scope-toggle {
-  display: inline-flex;
-  border: 1px solid var(--line);
-  border-radius: 100px;
-  padding: 3px;
-  gap: 3px;
-  background: var(--bg-base);
+.topbar, .scope-section, .section-dark {
+  transition: border-color 0.3s ease;
 }
+html[data-scope="ampliado"] .topbar { border-bottom-color: rgba(240,169,60,0.3); }
+html[data-scope="vigente"] .topbar { border-bottom-color: var(--line); }
 
-.scope-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  border: none;
-  background: none;
-  color: var(--text-mid);
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  padding: 7px 14px;
-  border-radius: 100px;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-.scope-btn:hover { color: var(--text-hi); }
-
-.scope-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--text-low);
-  flex-shrink: 0;
-}
-
-.scope-time { color: var(--text-low); }
-
-.scope-btn-vigente.is-active {
-  background: var(--accent-glow);
-  color: var(--accent);
-}
-.scope-btn-vigente.is-active .scope-dot { background: var(--accent); }
-.scope-btn-vigente.is-active .scope-time { color: var(--accent); opacity: 0.8; }
-
-.scope-btn-ampliado.is-active {
-  background: var(--amber-glow);
-  color: var(--amber);
-}
-.scope-btn-ampliado.is-active .scope-dot { background: var(--amber); }
-.scope-btn-ampliado.is-active .scope-time { color: var(--amber); opacity: 0.8; }
+.eyebrow { transition: color 0.3s ease; }
+html[data-scope="ampliado"] .eyebrow { color: var(--amber); }
+html[data-scope="vigente"] .eyebrow { color: var(--accent); }
 
 /* ============================================================
-   Scope-conditional visibility — controlado por data-scope en <body>
+   Scope-conditional visibility — controlado por data-scope en <html>
    ============================================================ */
 .scope-only { display: none; }
 
-body[data-scope="vigente"] .scope-only-vigente { display: block; }
-body[data-scope="vigente"] span.scope-only-vigente,
-body[data-scope="vigente"] li.scope-only-vigente { display: inline; }
+html[data-scope="vigente"] .scope-only-vigente { display: block; }
+html[data-scope="vigente"] span.scope-only-vigente,
+html[data-scope="vigente"] li.scope-only-vigente { display: inline; }
 
-body[data-scope="ampliado"] .scope-only-ampliado { display: block; }
-body[data-scope="ampliado"] span.scope-only-ampliado,
-body[data-scope="ampliado"] li.scope-only-ampliado { display: inline; }
+html[data-scope="ampliado"] .scope-only-ampliado { display: block; }
+html[data-scope="ampliado"] span.scope-only-ampliado,
+html[data-scope="ampliado"] li.scope-only-ampliado { display: inline; }
 
 /* Elementos que necesitan su display original preservado al mostrarse */
-body[data-scope="vigente"] .tree.scope-only-vigente,
-body[data-scope="ampliado"] .tree.scope-only-ampliado { display: block; }
+html[data-scope="vigente"] .tree.scope-only-vigente,
+html[data-scope="ampliado"] .tree.scope-only-ampliado { display: block; }
 
 /* Tarjetas de decisión: ambas siempre visibles (es la comparativa),
-   pero la que coincide con el scope activo se resalta y la otra se atenúa. */
+   pero la seleccionada se resalta con el color de la decisión activa
+   y la otra se atenúa. */
 .decision-card { transition: opacity 0.2s ease, border-color 0.2s ease, transform 0.2s ease; }
 
-body[data-scope="vigente"] .decision-card-vigente {
-  border-color: var(--accent); opacity: 1; transform: scale(1);
+.decision-card.is-selected {
+  border-color: var(--scope-color);
+  opacity: 1;
+  transform: scale(1);
 }
-body[data-scope="vigente"] .decision-card-ampliado {
+.decision-card:not(.is-selected) {
   opacity: 0.55;
 }
-body[data-scope="ampliado"] .decision-card-ampliado {
-  border-color: var(--amber); opacity: 1; transform: scale(1);
-}
-body[data-scope="ampliado"] .decision-card-vigente {
-  opacity: 0.55;
+.decision-card:not(.is-selected):hover {
+  opacity: 0.8;
 }
 
 .ba-target { transition: background 0.2s ease, border-color 0.2s ease; }
-body[data-scope="vigente"] .ba-row.ba-target {
-  background: var(--accent-glow); border-color: var(--accent-dim);
-}
-body[data-scope="ampliado"] .ba-row.ba-target {
-  background: var(--amber-glow); border-color: rgba(240,169,60,0.35);
+.ba-row.ba-target {
+  background: var(--scope-glow);
+  border-color: var(--scope-color-dim);
 }
 
 /* Secciones cuyo contenido cambia completo según el scope activo:
    un borde lateral de color indica bajo qué lente se está leyendo. */
 .scope-section { position: relative; border-left: 3px solid transparent; transition: border-color 0.2s ease; }
-body[data-scope="vigente"] .scope-section { border-left-color: var(--accent); }
-body[data-scope="ampliado"] .scope-section { border-left-color: var(--amber); }
+.scope-section { border-left-color: var(--scope-color); }
 
 .scope-section-inner { transition: border-color 0.2s ease, background 0.2s ease; }
-body[data-scope="vigente"] .scope-section-inner {
-  border-color: var(--accent-dim) !important;
-}
-body[data-scope="ampliado"] .scope-section-inner {
-  border-color: rgba(240,169,60,0.4) !important;
-}
+.scope-section-inner { border-color: var(--scope-color-dim) !important; }
 
 @media (max-width: 760px) {
   .topnav { display: none; }
   .topbar-inner { gap: 16px; }
-  .scope-bar { flex-direction: column; gap: 8px; }
 }
 
 /* ============================================================
@@ -759,12 +718,48 @@ body[data-scope="ampliado"] .scope-section-inner {
 .rule-step p { color: var(--text-mid); font-size: 14.5px; margin: 0; }
 
 /* ============================================================
-   Pending items grid
+   Pending items grid (agrupado: comunes + scope activo)
    ============================================================ */
 .pending-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.pending-group-head {
+  margin-bottom: 18px;
+}
+.pending-group-head h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  margin: 0 0 4px;
+  color: var(--scope-color);
+}
+.pending-group-head p {
+  font-size: 13.5px;
+  color: var(--text-low);
+  margin: 0;
+  max-width: 560px;
+}
+
+.pending-grid-inner {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
+}
+
+.pending-card.is-resolved {
+  border-color: var(--accent-dim);
+  background: linear-gradient(160deg, var(--accent-glow), transparent 60%), var(--bg-panel);
+}
+.pending-card.is-resolved .p-num {
+  color: var(--accent);
+}
+.pending-card.is-resolved .p-owner::before {
+  background: var(--accent);
+}
+.pending-card.is-resolved .p-owner {
+  color: var(--accent);
 }
 
 .pending-card {
@@ -832,11 +827,29 @@ body[data-scope="ampliado"] .scope-section-inner {
 }
 
 .decision-card {
+  display: block;
+  position: relative;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--bg-panel);
   padding: 28px 26px;
 }
+
+.decision-select-badge {
+  position: absolute;
+  top: 20px; right: 22px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--scope-color);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.decision-card.is-selected .decision-select-badge { opacity: 1; }
 
 .decision-card-alt {
   border-color: rgba(240,169,60,0.3);
@@ -905,6 +918,116 @@ body[data-scope="ampliado"] .scope-section-inner {
 
 @media (max-width: 860px) {
   .decision-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   Gantt — plan de trabajo según la decisión seleccionada
+   ============================================================ */
+.gantt-head {
+  margin-top: 56px;
+  margin-bottom: 24px;
+}
+.gantt-head h3 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  margin: 6px 0 0;
+  color: var(--scope-color);
+  transition: color 0.3s ease;
+}
+
+.gantt {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-base);
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.gantt-scale {
+  display: grid;
+  margin-left: 160px;
+  margin-bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-low);
+}
+.gantt-scale span { text-align: center; }
+
+.gantt-track-group {
+  margin-bottom: 18px;
+}
+.gantt-track-label {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-low);
+  margin-bottom: 8px;
+  padding-left: 2px;
+}
+
+.gantt-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  align-items: center;
+  gap: 12px;
+  min-height: 38px;
+}
+
+.gantt-row-label {
+  font-size: 13px;
+  color: var(--text-mid);
+  padding-right: 8px;
+}
+
+.gantt-bar-track {
+  position: relative;
+  height: 26px;
+  background: var(--bg-panel-2);
+  border-radius: 6px;
+  min-width: 480px;
+}
+
+.gantt-bar {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  border-radius: 5px;
+  background: var(--scope-glow);
+  border: 1px solid var(--scope-color-dim);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--scope-color);
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.gantt-legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--text-low);
+  flex-wrap: wrap;
+}
+.gantt-legend-item { display: flex; align-items: center; gap: 7px; }
+.gantt-legend-dot {
+  width: 9px; height: 9px;
+  border-radius: 2px;
+  background: var(--scope-glow);
+  border: 1px solid var(--scope-color-dim);
+}
+
+@media (max-width: 760px) {
+  .gantt-row { grid-template-columns: 110px 1fr; }
+  .gantt-scale { margin-left: 110px; }
+  .gantt-row-label { font-size: 12px; }
 }
 
 /* ============================================================
