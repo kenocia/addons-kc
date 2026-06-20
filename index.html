@@ -22,6 +22,7 @@
     <nav class="topnav">
       <a href="#evolucion">Evolución</a>
       <a href="#estructura">Estructura</a>
+      <a href="#decision">Decisión</a>
       <a href="#procesos">Procesos</a>
       <a href="#reglas">Reglas</a>
       <a href="#pendientes">Pendientes</a>
@@ -130,8 +131,8 @@
       <h2>Un producto.<br>Tantas variantes como tallas.</h2>
       <p class="section-intro">
         SAP no tiene un registro de "producto padre" &mdash; cada combinación Modelo&#8209;Color&#8209;Talla
-        es un <span class="mono">ItemCode</span> plano. El padre se construye agrupando por
-        <span class="mono">Modelo + Color</span>. Toca el nodo para expandir.
+        es un <span class="mono">ItemCode</span> plano. En el alcance vigente, el padre se construye
+        agrupando por <span class="mono">Modelo + Color</span>. Toca el nodo para expandir.
       </p>
     </div>
 
@@ -145,6 +146,57 @@
     <div class="principle-box">
       <span class="principle-label">Principio rector</span>
       <p>El SKU en Shopify debe ser idéntico, carácter por carácter, al <span class="mono">ItemCode</span> de SAP. Sin sufijos generados por Shopify, sin sufijos generados por el addon. El cruce entre sistemas se resuelve con una igualdad directa.</p>
+    </div>
+  </section>
+
+  <!-- DECISIÓN DE ALCANCE: COLOR COMO VARIANTE -->
+  <section class="section" id="decision">
+    <div class="section-head">
+      <p class="eyebrow">02.1 &mdash; Decisión abierta</p>
+      <h2>¿El color es del producto,<br>o es una variante?</h2>
+      <p class="section-intro">
+        El alcance vigente trata cada color como un producto distinto. Hay una segunda
+        opción &mdash; tratarlo como variante, igual que la talla &mdash; que cambia la
+        experiencia del cliente, pero también el costo del desarrollo. No es una mejora
+        técnica menor: es una decisión de negocio.
+      </p>
+    </div>
+
+    <div class="decision-grid">
+      <div class="decision-card">
+        <span class="decision-tag decision-tag-current">Alcance vigente</span>
+        <h3>Color dentro del padre</h3>
+        <p class="decision-time">5 días</p>
+        <ul class="decision-list">
+          <li>El padre agrupa por <span class="mono">Modelo + Color</span> &mdash; cada color es un producto independiente en Shopify.</li>
+          <li>Shopify solo expone <strong>Talla</strong> como opción de variante.</li>
+          <li>Imágenes en S3 se buscan por <span class="mono">Modelo + Color</span>.</li>
+          <li>No depende de una matriz de traducción de color para funcionar.</li>
+        </ul>
+        <div class="decision-tradeoff decision-tradeoff-risk">
+          <strong>Costo para el cliente final:</strong> ve "Navy" y "Blanco" del mismo blazer como dos fichas de producto separadas, no como un selector de color dentro de una sola ficha.
+        </div>
+      </div>
+
+      <div class="decision-card decision-card-alt">
+        <span class="decision-tag decision-tag-alt">Alcance ampliado</span>
+        <h3>Color como variante real</h3>
+        <p class="decision-time">+1.5 semanas</p>
+        <ul class="decision-list">
+          <li>El padre agrupa solo por <span class="mono">Modelo</span> &mdash; un producto contiene todos sus colores y tallas.</li>
+          <li>Shopify expone <strong>Talla y Color</strong> como opciones, con selector dentro de una sola ficha.</li>
+          <li>Imágenes en S3 se buscan únicamente por <span class="mono">Modelo</span>.</li>
+          <li>Requiere una <strong>matriz de traducción</strong> código&#8209;color → nombre comercial (ej. <span class="mono">730</span> → "Navy"), porque el cliente final no reconoce códigos SAP.</li>
+        </ul>
+        <div class="decision-tradeoff decision-tradeoff-good">
+          <strong>Ya identificado:</strong> la matriz código→nombre de color puede construirse a partir de información que ya existe o es fácil de generar &mdash; esto reduce el riesgo de esta opción, aunque no el tiempo de implementación.
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-warning">
+      <span class="callout-icon">!</span>
+      <p><strong>Esta decisión define la clave de agrupación de todo el módulo</strong> &mdash; no es un ajuste posterior de bajo costo. Cambiar de alcance después de construido el Proceso&nbsp;1 (sección 03) implica rehacer la lógica de creación/actualización de productos, no solo agregar un campo.</p>
     </div>
   </section>
 
@@ -182,15 +234,19 @@
         <span class="process-num">03</span>
         <h3>Imágenes desde Amazon S3</h3>
         <p class="process-role">Lectura ← S3, por grupo</p>
-        <p>La misma imagen sirve para todas las tallas de un modelo&#8209;color. Buscarla por hijo repite la descarga una vez por talla &mdash; el defecto identificado en esta revisión.</p>
+        <p>La misma imagen sirve para todas las tallas de un mismo color. Buscarla por hijo repite la descarga una vez por talla &mdash; el defecto identificado en esta revisión. La clave exacta del grupo depende de la <a href="#decision">decisión de alcance</a>.</p>
         <div class="process-before-after">
           <div class="ba-row ba-before">
-            <span class="ba-label">Antes</span>
+            <span class="ba-label">Hoy (por hijo)</span>
             <span class="mono">BF5CACC06&#8209;730&#8209;XLG</span>
           </div>
           <div class="ba-row ba-after">
-            <span class="ba-label">Ahora</span>
+            <span class="ba-label">Alcance vigente</span>
             <span class="mono">BF5CACC06&#8209;730</span>
+          </div>
+          <div class="ba-row ba-pending">
+            <span class="ba-label">Si color = variante</span>
+            <span class="mono">BF5CACC06</span>
           </div>
         </div>
       </div>
@@ -253,9 +309,11 @@
     <div class="section-head">
       <p class="eyebrow">05 &mdash; Estado actual</p>
       <h2>Lo decidido y lo que falta.</h2>
+      <p class="section-intro">Toca cualquier punto para ver el contexto completo: por qué importa, qué pasa si se deja sin resolver, y qué decisión puntual hace falta.</p>
     </div>
 
     <div class="pending-grid" id="pending-grid"></div>
+    <div class="pending-detail" id="pending-detail" hidden></div>
   </section>
 
 </main>

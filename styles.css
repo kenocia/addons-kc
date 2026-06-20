@@ -554,6 +554,7 @@ a { color: inherit; }
 }
 .ba-before { background: var(--risk-glow); border-color: rgba(232,116,74,0.3); }
 .ba-after { background: var(--accent-glow); border-color: var(--accent-dim); }
+.ba-pending { background: var(--amber-glow); border-color: rgba(240,169,60,0.35); }
 .ba-label { font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; color: var(--text-low); }
 
 @media (max-width: 860px) {
@@ -629,6 +630,7 @@ a { color: inherit; }
 }
 
 .pending-card {
+  display: block;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 20px;
@@ -681,3 +683,166 @@ a { color: inherit; }
 .footer-inner > div:first-child { display: flex; align-items: center; }
 
 .footer-meta { color: var(--text-low); }
+
+/* ============================================================
+   Decision section (color: producto vs variante)
+   ============================================================ */
+.decision-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.decision-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  padding: 28px 26px;
+}
+
+.decision-card-alt {
+  border-color: rgba(240,169,60,0.3);
+  background: linear-gradient(160deg, var(--amber-glow), transparent 55%), var(--bg-panel);
+}
+
+.decision-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  letter-spacing: 0.02em;
+}
+.decision-tag-current { background: var(--accent-glow); color: var(--accent); }
+.decision-tag-alt { background: var(--amber-glow); color: var(--amber); }
+
+.decision-card h3 {
+  font-family: var(--font-display);
+  font-size: 21px;
+  margin: 14px 0 4px;
+}
+
+.decision-time {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--text-low);
+  margin: 0 0 18px;
+}
+
+.decision-list {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.decision-list li {
+  font-size: 14px;
+  color: var(--text-mid);
+  padding-left: 16px;
+  position: relative;
+  line-height: 1.5;
+}
+.decision-list li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 8px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--text-low);
+}
+.decision-list strong { color: var(--text-hi); }
+
+.decision-tradeoff {
+  font-size: 13.5px;
+  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1px solid;
+  color: var(--text-hi);
+}
+.decision-tradeoff strong { display: block; margin-bottom: 4px; font-size: 12.5px; color: var(--text-hi); }
+.decision-tradeoff-risk { background: var(--risk-glow); border-color: rgba(232,116,74,0.3); }
+.decision-tradeoff-good { background: var(--accent-glow); border-color: var(--accent-dim); }
+
+@media (max-width: 860px) {
+  .decision-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   Pending items — interactive detail
+   ============================================================ */
+.pending-card {
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+  color: inherit;
+}
+.pending-card:hover, .pending-card:focus-visible { border-color: var(--accent-dim); transform: translateY(-1px); }
+.pending-card.is-open { border-color: var(--accent); background: linear-gradient(160deg, var(--accent-glow), transparent 60%), var(--bg-panel); }
+
+.pending-card .p-hint {
+  display: block;
+  margin-top: 10px;
+  font-size: 11.5px;
+  color: var(--text-low);
+  font-family: var(--font-mono);
+}
+
+.pending-detail {
+  margin-top: 8px;
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--radius);
+  background: linear-gradient(160deg, var(--accent-glow), transparent 70%), var(--bg-panel);
+  padding: 28px 26px;
+}
+
+.pending-detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.pending-detail h4 {
+  font-family: var(--font-display);
+  font-size: 19px;
+  margin: 0 0 6px;
+  color: var(--text-hi);
+}
+
+.pending-detail-close {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text-mid);
+  border-radius: 7px;
+  width: 30px; height: 30px;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.pending-detail-close:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+.pending-detail-section { margin-bottom: 16px; }
+.pending-detail-section:last-child { margin-bottom: 0; }
+
+.pending-detail-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.pending-detail-section p {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
