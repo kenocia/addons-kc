@@ -21,13 +21,24 @@
     </div>
     <nav class="topnav">
       <a href="#evolucion">Evolución</a>
-      <a href="#estructura">Estructura</a>
       <a href="#decision">Decisión</a>
+      <a href="#estructura">Estructura</a>
       <a href="#procesos">Procesos</a>
       <a href="#reglas">Reglas</a>
       <a href="#pendientes">Pendientes</a>
     </nav>
     <span class="status-chip"><span class="dot"></span>En diseño</span>
+  </div>
+  <div class="scope-bar">
+    <span class="scope-bar-label">Viendo el análisis bajo:</span>
+    <div class="scope-toggle" role="group" aria-label="Selector de alcance del análisis">
+      <button type="button" class="scope-btn scope-btn-vigente is-active" data-scope="vigente">
+        <span class="scope-dot"></span>Alcance vigente <span class="scope-time">· 5 días</span>
+      </button>
+      <button type="button" class="scope-btn scope-btn-ampliado" data-scope="ampliado">
+        <span class="scope-dot"></span>Color como variante <span class="scope-time">· +1.5 sem</span>
+      </button>
+    </div>
   </div>
 </header>
 
@@ -124,46 +135,20 @@
     </div>
   </section>
 
-  <!-- ESTRUCTURA PADRE / VARIANTE -->
-  <section class="section section-dark" id="estructura">
-    <div class="section-head">
-      <p class="eyebrow">02 &mdash; Modelo de datos objetivo</p>
-      <h2>Un producto.<br>Tantas variantes como tallas.</h2>
-      <p class="section-intro">
-        SAP no tiene un registro de "producto padre" &mdash; cada combinación Modelo&#8209;Color&#8209;Talla
-        es un <span class="mono">ItemCode</span> plano. En el alcance vigente, el padre se construye
-        agrupando por <span class="mono">Modelo + Color</span>. Toca el nodo para expandir.
-      </p>
-    </div>
-
-    <div class="tree-wrap">
-      <div class="tree" id="product-tree"></div>
-      <div class="tree-detail" id="tree-detail">
-        <p class="tree-detail-placeholder">Selecciona un nodo del diagrama para ver su detalle.</p>
-      </div>
-    </div>
-
-    <div class="principle-box">
-      <span class="principle-label">Principio rector</span>
-      <p>El SKU en Shopify debe ser idéntico, carácter por carácter, al <span class="mono">ItemCode</span> de SAP. Sin sufijos generados por Shopify, sin sufijos generados por el addon. El cruce entre sistemas se resuelve con una igualdad directa.</p>
-    </div>
-  </section>
-
   <!-- DECISIÓN DE ALCANCE: COLOR COMO VARIANTE -->
   <section class="section" id="decision">
     <div class="section-head">
-      <p class="eyebrow">02.1 &mdash; Decisión abierta</p>
+      <p class="eyebrow">02 &mdash; Decisión abierta</p>
       <h2>¿El color es del producto,<br>o es una variante?</h2>
       <p class="section-intro">
-        El alcance vigente trata cada color como un producto distinto. Hay una segunda
-        opción &mdash; tratarlo como variante, igual que la talla &mdash; que cambia la
-        experiencia del cliente, pero también el costo del desarrollo. No es una mejora
-        técnica menor: es una decisión de negocio.
+        Esta decisión cambia la estructura, los procesos y el costo del resto del módulo.
+        Usa el selector de arriba <span class="mono">(Alcance vigente / Color como variante)</span>
+        para ver cómo se transforma cada sección de aquí en adelante según la opción elegida.
       </p>
     </div>
 
     <div class="decision-grid">
-      <div class="decision-card">
+      <div class="decision-card decision-card-vigente" data-scope-card="vigente">
         <span class="decision-tag decision-tag-current">Alcance vigente</span>
         <h3>Color dentro del padre</h3>
         <p class="decision-time">5 días</p>
@@ -178,7 +163,7 @@
         </div>
       </div>
 
-      <div class="decision-card decision-card-alt">
+      <div class="decision-card decision-card-alt decision-card-ampliado" data-scope-card="ampliado">
         <span class="decision-tag decision-tag-alt">Alcance ampliado</span>
         <h3>Color como variante real</h3>
         <p class="decision-time">+1.5 semanas</p>
@@ -199,6 +184,39 @@
       <p><strong>Esta decisión define la clave de agrupación de todo el módulo</strong> &mdash; no es un ajuste posterior de bajo costo. Cambiar de alcance después de construido el Proceso&nbsp;1 (sección 03) implica rehacer la lógica de creación/actualización de productos, no solo agregar un campo.</p>
     </div>
   </section>
+
+  <!-- ESTRUCTURA PADRE / VARIANTE -->
+  <section class="section section-dark scope-section" id="estructura">
+    <div class="section-head">
+      <p class="eyebrow">02.1 &mdash; Modelo de datos resultante</p>
+      <h2 class="scope-only scope-only-vigente">Un producto por color.<br>Tantas variantes como tallas.</h2>
+      <h2 class="scope-only scope-only-ampliado">Un producto por modelo.<br>Colores y tallas, todo variante.</h2>
+      <p class="section-intro scope-only scope-only-vigente">
+        SAP no tiene un registro de "producto padre" &mdash; cada combinación Modelo&#8209;Color&#8209;Talla
+        es un <span class="mono">ItemCode</span> plano. Bajo este alcance, el padre se construye
+        agrupando por <span class="mono">Modelo + Color</span>. Toca el nodo para expandir.
+      </p>
+      <p class="section-intro scope-only scope-only-ampliado">
+        SAP no tiene un registro de "producto padre" &mdash; cada combinación Modelo&#8209;Color&#8209;Talla
+        es un <span class="mono">ItemCode</span> plano. Bajo este alcance, el padre se construye
+        agrupando solo por <span class="mono">Modelo</span>, y el color pasa a ser una opción de
+        variante más, junto con la talla. Toca el nodo para expandir.
+      </p>
+    </div>
+
+    <div class="tree-wrap">
+      <div class="tree scope-section-inner" id="product-tree"></div>
+      <div class="tree-detail" id="tree-detail">
+        <p class="tree-detail-placeholder">Selecciona un nodo del diagrama para ver su detalle.</p>
+      </div>
+    </div>
+
+    <div class="principle-box">
+      <span class="principle-label">Principio rector</span>
+      <p>El SKU en Shopify debe ser idéntico, carácter por carácter, al <span class="mono">ItemCode</span> de SAP. Sin sufijos generados por Shopify, sin sufijos generados por el addon. El cruce entre sistemas se resuelve con una igualdad directa.</p>
+    </div>
+  </section>
+
 
   <!-- PROCESOS -->
   <section class="section" id="procesos">
@@ -230,22 +248,23 @@
         <div class="process-key">Clave: <span class="mono">ItemCode</span> completo</div>
       </div>
 
-      <div class="process-card process-card-fixed" tabindex="0">
+      <div class="process-card process-card-fixed scope-section-inner" tabindex="0">
         <span class="process-num">03</span>
         <h3>Imágenes desde Amazon S3</h3>
         <p class="process-role">Lectura ← S3, por grupo</p>
-        <p>La misma imagen sirve para todas las tallas de un mismo color. Buscarla por hijo repite la descarga una vez por talla &mdash; el defecto identificado en esta revisión. La clave exacta del grupo depende de la <a href="#decision">decisión de alcance</a>.</p>
+        <p class="scope-only scope-only-vigente">La misma imagen sirve para todas las tallas de un mismo color. Buscarla por hijo repite la descarga una vez por talla &mdash; el defecto identificado en esta revisión.</p>
+        <p class="scope-only scope-only-ampliado">Bajo este alcance, la imagen se asocia al modelo completo y el color se resuelve dentro de la misma ficha &mdash; una sola búsqueda en S3 sirve para todos los colores y tallas de un modelo.</p>
         <div class="process-before-after">
           <div class="ba-row ba-before">
             <span class="ba-label">Hoy (por hijo)</span>
             <span class="mono">BF5CACC06&#8209;730&#8209;XLG</span>
           </div>
-          <div class="ba-row ba-after">
-            <span class="ba-label">Alcance vigente</span>
+          <div class="ba-row ba-target scope-only scope-only-vigente">
+            <span class="ba-label">Clave bajo este alcance</span>
             <span class="mono">BF5CACC06&#8209;730</span>
           </div>
-          <div class="ba-row ba-pending">
-            <span class="ba-label">Si color = variante</span>
+          <div class="ba-row ba-target scope-only scope-only-ampliado">
+            <span class="ba-label">Clave bajo este alcance</span>
             <span class="mono">BF5CACC06</span>
           </div>
         </div>

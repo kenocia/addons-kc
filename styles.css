@@ -141,9 +141,134 @@ a { color: inherit; }
   box-shadow: 0 0 0 3px var(--amber-glow);
 }
 
+/* ============================================================
+   Scope bar — selector global de alcance (vigente / ampliado)
+   ============================================================ */
+.scope-bar {
+  border-top: 1px solid var(--line);
+  background: var(--bg-panel);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.scope-bar-label {
+  font-size: 12.5px;
+  color: var(--text-low);
+  font-family: var(--font-mono);
+}
+
+.scope-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  padding: 3px;
+  gap: 3px;
+  background: var(--bg-base);
+}
+
+.scope-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: none;
+  background: none;
+  color: var(--text-mid);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  padding: 7px 14px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.scope-btn:hover { color: var(--text-hi); }
+
+.scope-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text-low);
+  flex-shrink: 0;
+}
+
+.scope-time { color: var(--text-low); }
+
+.scope-btn-vigente.is-active {
+  background: var(--accent-glow);
+  color: var(--accent);
+}
+.scope-btn-vigente.is-active .scope-dot { background: var(--accent); }
+.scope-btn-vigente.is-active .scope-time { color: var(--accent); opacity: 0.8; }
+
+.scope-btn-ampliado.is-active {
+  background: var(--amber-glow);
+  color: var(--amber);
+}
+.scope-btn-ampliado.is-active .scope-dot { background: var(--amber); }
+.scope-btn-ampliado.is-active .scope-time { color: var(--amber); opacity: 0.8; }
+
+/* ============================================================
+   Scope-conditional visibility — controlado por data-scope en <body>
+   ============================================================ */
+.scope-only { display: none; }
+
+body[data-scope="vigente"] .scope-only-vigente { display: block; }
+body[data-scope="vigente"] span.scope-only-vigente,
+body[data-scope="vigente"] li.scope-only-vigente { display: inline; }
+
+body[data-scope="ampliado"] .scope-only-ampliado { display: block; }
+body[data-scope="ampliado"] span.scope-only-ampliado,
+body[data-scope="ampliado"] li.scope-only-ampliado { display: inline; }
+
+/* Elementos que necesitan su display original preservado al mostrarse */
+body[data-scope="vigente"] .tree.scope-only-vigente,
+body[data-scope="ampliado"] .tree.scope-only-ampliado { display: block; }
+
+/* Tarjetas de decisión: ambas siempre visibles (es la comparativa),
+   pero la que coincide con el scope activo se resalta y la otra se atenúa. */
+.decision-card { transition: opacity 0.2s ease, border-color 0.2s ease, transform 0.2s ease; }
+
+body[data-scope="vigente"] .decision-card-vigente {
+  border-color: var(--accent); opacity: 1; transform: scale(1);
+}
+body[data-scope="vigente"] .decision-card-ampliado {
+  opacity: 0.55;
+}
+body[data-scope="ampliado"] .decision-card-ampliado {
+  border-color: var(--amber); opacity: 1; transform: scale(1);
+}
+body[data-scope="ampliado"] .decision-card-vigente {
+  opacity: 0.55;
+}
+
+.ba-target { transition: background 0.2s ease, border-color 0.2s ease; }
+body[data-scope="vigente"] .ba-row.ba-target {
+  background: var(--accent-glow); border-color: var(--accent-dim);
+}
+body[data-scope="ampliado"] .ba-row.ba-target {
+  background: var(--amber-glow); border-color: rgba(240,169,60,0.35);
+}
+
+/* Secciones cuyo contenido cambia completo según el scope activo:
+   un borde lateral de color indica bajo qué lente se está leyendo. */
+.scope-section { position: relative; border-left: 3px solid transparent; transition: border-color 0.2s ease; }
+body[data-scope="vigente"] .scope-section { border-left-color: var(--accent); }
+body[data-scope="ampliado"] .scope-section { border-left-color: var(--amber); }
+
+.scope-section-inner { transition: border-color 0.2s ease, background 0.2s ease; }
+body[data-scope="vigente"] .scope-section-inner {
+  border-color: var(--accent-dim) !important;
+}
+body[data-scope="ampliado"] .scope-section-inner {
+  border-color: rgba(240,169,60,0.4) !important;
+}
+
 @media (max-width: 760px) {
   .topnav { display: none; }
   .topbar-inner { gap: 16px; }
+  .scope-bar { flex-direction: column; gap: 8px; }
 }
 
 /* ============================================================
@@ -420,6 +545,7 @@ a { color: inherit; }
 .tree-branch {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-start;
   gap: 14px;
   margin-left: 34px;
   padding-left: 22px;
@@ -432,6 +558,18 @@ a { color: inherit; }
   top: -22px; left: -1px;
   width: 1px; height: 22px;
   background: var(--line);
+}
+
+/* Envuelve un nodo y, si tiene hijos, su propia sub-rama debajo —
+   permite anidar recursivamente (árbol de hasta 3 niveles: padre → color → talla). */
+.tree-node-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.tree-node-wrap .tree-branch {
+  margin-left: 14px;
+  margin-top: 4px;
 }
 
 .tree-detail {

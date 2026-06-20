@@ -2,7 +2,10 @@
 // KENO-SHOPY — datos y comportamiento interactivo
 // ============================================================
 
-const PRODUCT_TREE = {
+// ------------------------------------------------------------
+// Árbol — Alcance vigente: padre = Modelo + Color, hijos = Tallas
+// ------------------------------------------------------------
+const TREE_VIGENTE = {
   id: "root",
   type: "padre",
   label: "BF5CACC06 · 730",
@@ -14,7 +17,7 @@ const PRODUCT_TREE = {
       ["Color (U_ARGNS_COL)", "730"],
       ["Título en Shopify", "UDF · Descripción Padre (nuevo)"],
       ["Categoría", "U_Traductor"],
-      ["Imágenes", "Amazon S3 · una búsqueda por grupo"],
+      ["Imágenes", "Amazon S3 · búsqueda por Modelo + Color"],
       ["Shopify Product ID", "UDF en OITM · replicado a todas las variantes"],
     ],
   },
@@ -69,6 +72,129 @@ const PRODUCT_TREE = {
           ["Disponible enviado a Shopify", "0 → revisar regla Draft/Archived"],
         ],
       },
+    },
+  ],
+};
+
+// ------------------------------------------------------------
+// Árbol — Alcance ampliado: padre = Modelo, hijos = Color (con
+// sus propias tallas anidadas como variantes finales)
+// ------------------------------------------------------------
+const TREE_AMPLIADO = {
+  id: "root",
+  type: "padre",
+  label: "BF5CACC06",
+  title: "Producto padre",
+  detail: {
+    sub: "Clave de agrupación: U_ARGNS_MOD (solo Modelo)",
+    rows: [
+      ["Modelo (U_ARGNS_MOD)", "BF5CACC06"],
+      ["Título en Shopify", "UDF · Descripción Padre (nuevo)"],
+      ["Categoría", "U_Traductor"],
+      ["Imágenes", "Amazon S3 · búsqueda única por Modelo"],
+      ["Opciones de variante", "Color y Talla"],
+      ["Requiere", "Matriz código→nombre de color (ej. 730 → Navy)"],
+      ["Shopify Product ID", "UDF en OITM · replicado a todas las variantes de todos los colores"],
+    ],
+  },
+  children: [
+    {
+      id: "c1",
+      type: "color",
+      label: "Color 730 · Navy",
+      title: "Color · Navy (730)",
+      detail: {
+        sub: "El color pasa a ser una opción de variante, no parte del padre",
+        rows: [
+          ["Código SAP (U_ARGNS_COL)", "730"],
+          ["Nombre comercial", "Navy"],
+          ["Fuente del nombre", "Matriz de traducción código→color"],
+          ["Tallas bajo este color", "S, M, L"],
+        ],
+      },
+      children: [
+        {
+          id: "v1",
+          type: "hijo",
+          label: "BF5CACC06-730-S",
+          title: "Variante · Navy / Talla S",
+          detail: {
+            sub: "SKU = ItemCode exacto, sin sufijo",
+            rows: [
+              ["ItemCode (SAP)", "BF5CACC06-730-S"],
+              ["Color", "Navy (730)"],
+              ["Talla (U_argns_size)", "S"],
+              ["Precio (Lista 02)", "L 716.00"],
+              ["Disponible enviado a Shopify", "2"],
+            ],
+          },
+        },
+        {
+          id: "v2",
+          type: "hijo",
+          label: "BF5CACC06-730-M",
+          title: "Variante · Navy / Talla M",
+          detail: {
+            sub: "SKU = ItemCode exacto, sin sufijo",
+            rows: [
+              ["ItemCode (SAP)", "BF5CACC06-730-M"],
+              ["Color", "Navy (730)"],
+              ["Talla (U_argns_size)", "M"],
+              ["Precio (Lista 02)", "L 716.00"],
+              ["Disponible enviado a Shopify", "2"],
+            ],
+          },
+        },
+      ],
+    },
+    {
+      id: "c2",
+      type: "color",
+      label: "Color 001 · Blanco",
+      title: "Color · Blanco (001)",
+      detail: {
+        sub: "El color pasa a ser una opción de variante, no parte del padre",
+        rows: [
+          ["Código SAP (U_ARGNS_COL)", "001"],
+          ["Nombre comercial", "Blanco"],
+          ["Fuente del nombre", "Matriz de traducción código→color"],
+          ["Tallas bajo este color", "S, M"],
+        ],
+      },
+      children: [
+        {
+          id: "v3",
+          type: "hijo",
+          label: "BF5CACC06-001-S",
+          title: "Variante · Blanco / Talla S",
+          detail: {
+            sub: "SKU = ItemCode exacto, sin sufijo",
+            rows: [
+              ["ItemCode (SAP)", "BF5CACC06-001-S"],
+              ["Color", "Blanco (001)"],
+              ["Talla (U_argns_size)", "S"],
+              ["Precio (Lista 02)", "L 716.00"],
+              ["Disponible enviado a Shopify", "1"],
+            ],
+          },
+        },
+        {
+          id: "v4",
+          type: "hijo",
+          label: "BF5CACC06-001-M",
+          title: "Variante · Blanco / Talla M",
+          detail: {
+            sub: "SKU = ItemCode exacto, sin sufijo",
+            rows: [
+              ["ItemCode (SAP)", "BF5CACC06-001-M"],
+              ["Color", "Blanco (001)"],
+              ["Talla (U_argns_size)", "M"],
+              ["Precio (Lista 02)", "L 716.00"],
+              ["Disponible enviado a Shopify", "0 → revisar regla Draft/Archived"],
+            ],
+          },
+        },
+      ],
     },
   ],
 };
@@ -133,32 +259,49 @@ const PENDING_ITEMS = [
 ];
 
 // ------------------------------------------------------------
-// Render: árbol padre / variante
+// Render: árbol padre / variante (reacciona al scope activo)
 // ------------------------------------------------------------
-function renderTree() {
+function renderTree(scope) {
   const mount = document.getElementById("product-tree");
   const detailPanel = document.getElementById("tree-detail");
   if (!mount) return;
 
+  const tree = scope === "ampliado" ? TREE_AMPLIADO : TREE_VIGENTE;
+  mount.innerHTML = "";
+
   const rootRow = document.createElement("div");
   rootRow.className = "tree-root-row";
-  rootRow.appendChild(buildNode(PRODUCT_TREE));
+  rootRow.appendChild(buildNode(tree));
   mount.appendChild(rootRow);
 
-  const branch = document.createElement("div");
-  branch.className = "tree-branch";
-  PRODUCT_TREE.children.forEach((child) => {
-    branch.appendChild(buildNode(child));
-  });
-  mount.appendChild(branch);
+  renderBranch(tree.children, mount);
+
+  function renderBranch(nodes, parentEl) {
+    const branch = document.createElement("div");
+    branch.className = "tree-branch";
+    nodes.forEach((node) => {
+      const wrap = document.createElement("div");
+      wrap.className = "tree-node-wrap";
+      wrap.appendChild(buildNode(node));
+      if (node.children && node.children.length) {
+        renderBranch(node.children, wrap);
+      }
+      branch.appendChild(wrap);
+    });
+    parentEl.appendChild(branch);
+  }
 
   function buildNode(nodeData) {
     const el = document.createElement("button");
     el.type = "button";
     el.className = "tnode";
     el.setAttribute("data-id", nodeData.id);
-    el.innerHTML = `<span class="tnode-tag">${nodeData.type === "padre" ? "Padre" : "Hijo"}</span><span>${nodeData.label}</span>`;
-    el.addEventListener("click", () => selectNode(nodeData, el));
+    const tagLabel = nodeData.type === "padre" ? "Padre" : nodeData.type === "color" ? "Color" : "Hijo";
+    el.innerHTML = `<span class="tnode-tag">${tagLabel}</span><span>${nodeData.label}</span>`;
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      selectNode(nodeData, el);
+    });
     return el;
   }
 
@@ -182,7 +325,7 @@ function renderTree() {
 
   // seleccionar el padre por defecto para que el panel no quede vacío
   const firstNode = mount.querySelector(".tnode");
-  if (firstNode) selectNode(PRODUCT_TREE, firstNode);
+  if (firstNode) selectNode(tree, firstNode);
 }
 
 // ------------------------------------------------------------
@@ -250,9 +393,28 @@ function renderPending() {
 }
 
 // ------------------------------------------------------------
+// Selector global de alcance (vigente / ampliado)
+// ------------------------------------------------------------
+function initScopeToggle() {
+  const buttons = document.querySelectorAll(".scope-btn");
+  if (!buttons.length) return;
+
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const scope = btn.dataset.scope;
+      document.body.setAttribute("data-scope", scope);
+      buttons.forEach((b) => b.classList.toggle("is-active", b === btn));
+      renderTree(scope);
+    });
+  });
+}
+
+// ------------------------------------------------------------
 // Init
 // ------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
-  renderTree();
+  document.body.setAttribute("data-scope", "vigente");
+  initScopeToggle();
+  renderTree("vigente");
   renderPending();
 });
