@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keno-Shopy · Análisis de Integración SAP B1 ↔ Shopify</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="circuit-bg" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">KS</span>
+      <span class="brand-text">Keno&#8209;Shopy</span>
+    </div>
+    <nav class="topnav">
+      <a href="#evolucion">Evolución</a>
+      <a href="#estructura">Estructura</a>
+      <a href="#procesos">Procesos</a>
+      <a href="#reglas">Reglas</a>
+      <a href="#pendientes">Pendientes</a>
+    </nav>
+    <span class="status-chip"><span class="dot"></span>En diseño</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Lumo by Kenocia · Análisis de integración</p>
+      <h1>El SKU es la fuente<br>de verdad.</h1>
+      <p class="hero-sub">
+        Keno&#8209;Shopy sincroniza el catálogo de SAP Business One con Shopify para Van Heusen de C.A.
+        Este sitio documenta por qué el módulo necesitó un rediseño de fondo &mdash;
+        y la arquitectura que va a sostenerlo de aquí en adelante.
+      </p>
+      <div class="hero-meta">
+        <div class="meta-item">
+          <span class="meta-label">Cliente</span>
+          <span class="meta-value">Van Heusen de C.A.</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Sistemas</span>
+          <span class="meta-value mono">SAP&nbsp;B1 ⇄ Shopify</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Activos</span>
+          <span class="meta-value mono">Amazon&nbsp;S3</span>
+        </div>
+      </div>
+      <a href="#evolucion" class="scroll-cue" aria-label="Ir a la sección de evolución">
+        <span></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- EVOLUCIÓN / TIMELINE -->
+  <section class="section" id="evolucion">
+    <div class="section-head">
+      <p class="eyebrow">01 &mdash; Cómo llegamos aquí</p>
+      <h2>El alcance creció tres veces.<br>El modelo de datos, ninguna.</h2>
+      <p class="section-intro">
+        Cada etapa resolvió un problema real, pero ninguna reconsideró la anterior.
+        El resultado: variantes de un mismo producto compitiendo entre sí como productos
+        independientes en la tienda.
+      </p>
+    </div>
+
+    <div class="trace-timeline">
+      <svg class="trace-line" viewBox="0 0 1200 4" preserveAspectRatio="none" aria-hidden="true">
+        <line x1="0" y1="2" x2="1200" y2="2" />
+      </svg>
+
+      <div class="trace-stage" data-stage="1">
+        <div class="trace-node"></div>
+        <div class="trace-card">
+          <span class="trace-index">Etapa 01</span>
+          <h3>Sincronización básica</h3>
+          <p class="trace-sub">SAP B1 → Shopify</p>
+          <p>Envío de catálogo, precio y stock por cada <span class="mono">ItemCode</span>. Sin imágenes, sin jerarquía de variantes &mdash; cada artículo se trató como una entidad plana.</p>
+          <span class="trace-tag tag-base">Catálogo plano</span>
+        </div>
+      </div>
+
+      <div class="trace-stage" data-stage="2">
+        <div class="trace-node"></div>
+        <div class="trace-card">
+          <span class="trace-index">Etapa 02</span>
+          <h3>Incorporación de imágenes</h3>
+          <p class="trace-sub">Amazon S3 → Shopify</p>
+          <p>Se agregan imágenes de producto, buscadas por el SKU completo de cada hijo. Funciona, pero repite la misma descarga una vez por talla.</p>
+          <span class="trace-tag tag-mid">Búsqueda por hijo</span>
+        </div>
+      </div>
+
+      <div class="trace-stage" data-stage="3">
+        <div class="trace-node trace-node-current"></div>
+        <div class="trace-card trace-card-current">
+          <span class="trace-index">Etapa 03 &mdash; Actual</span>
+          <h3>Estructura padre / variante</h3>
+          <p class="trace-sub">Rediseño en curso</p>
+          <p>Shopify exige un producto padre con variantes. SAP no tiene ese concepto. Esta etapa lo construye: agrupación, anti&#8209;duplicados, SKU exacto, imágenes por grupo.</p>
+          <span class="trace-tag tag-current">En este documento</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-warning">
+      <span class="callout-icon">!</span>
+      <p><strong>Síntoma en producción:</strong> tallas de un mismo modelo aparecen como productos sueltos en Shopify, cada una con su propio estado <span class="mono">Active</span>. Sin agregación de inventario, una talla en cero queda visible y comprable igual.</p>
+    </div>
+  </section>
+
+  <!-- ESTRUCTURA PADRE / VARIANTE -->
+  <section class="section section-dark" id="estructura">
+    <div class="section-head">
+      <p class="eyebrow">02 &mdash; Modelo de datos objetivo</p>
+      <h2>Un producto.<br>Tantas variantes como tallas.</h2>
+      <p class="section-intro">
+        SAP no tiene un registro de "producto padre" &mdash; cada combinación Modelo&#8209;Color&#8209;Talla
+        es un <span class="mono">ItemCode</span> plano. El padre se construye agrupando por
+        <span class="mono">Modelo + Color</span>. Toca el nodo para expandir.
+      </p>
+    </div>
+
+    <div class="tree-wrap">
+      <div class="tree" id="product-tree"></div>
+      <div class="tree-detail" id="tree-detail">
+        <p class="tree-detail-placeholder">Selecciona un nodo del diagrama para ver su detalle.</p>
+      </div>
+    </div>
+
+    <div class="principle-box">
+      <span class="principle-label">Principio rector</span>
+      <p>El SKU en Shopify debe ser idéntico, carácter por carácter, al <span class="mono">ItemCode</span> de SAP. Sin sufijos generados por Shopify, sin sufijos generados por el addon. El cruce entre sistemas se resuelve con una igualdad directa.</p>
+    </div>
+  </section>
+
+  <!-- PROCESOS -->
+  <section class="section" id="procesos">
+    <div class="section-head">
+      <p class="eyebrow">03 &mdash; Arquitectura del addon</p>
+      <h2>Tres procesos.<br>Dos niveles de granularidad.</h2>
+      <p class="section-intro">
+        Los procesos 2 y 3 alimentan al Proceso 1, pero buscan en SAP con claves distintas:
+        uno por variante, el otro por grupo. Esa diferencia es intencional.
+      </p>
+    </div>
+
+    <div class="process-grid">
+      <div class="process-card" tabindex="0">
+        <span class="process-num">01</span>
+        <h3>Envío de padre + hijos</h3>
+        <p class="process-role">Escritura → Shopify</p>
+        <p>Crea o actualiza el producto padre junto con sus variantes. El stock que se controla por hijo es el <strong>disponible real</strong>, no el stock físico bruto.</p>
+        <div class="process-formula">
+          <span>Disponible</span> = <span class="mono">OITW</span> (físico) &minus; Reservado
+        </div>
+      </div>
+
+      <div class="process-card" tabindex="0">
+        <span class="process-num">02</span>
+        <h3>Lectura de SKU, precio y stock</h3>
+        <p class="process-role">Lectura ← SAP, por variante</p>
+        <p>Recorre cada <span class="mono">ItemCode</span> y obtiene su precio de Lista&nbsp;02 y su disponible. Alimenta al Proceso&nbsp;1 y las actualizaciones periódicas de variantes ya existentes.</p>
+        <div class="process-key">Clave: <span class="mono">ItemCode</span> completo</div>
+      </div>
+
+      <div class="process-card process-card-fixed" tabindex="0">
+        <span class="process-num">03</span>
+        <h3>Imágenes desde Amazon S3</h3>
+        <p class="process-role">Lectura ← S3, por grupo</p>
+        <p>La misma imagen sirve para todas las tallas de un modelo&#8209;color. Buscarla por hijo repite la descarga una vez por talla &mdash; el defecto identificado en esta revisión.</p>
+        <div class="process-before-after">
+          <div class="ba-row ba-before">
+            <span class="ba-label">Antes</span>
+            <span class="mono">BF5CACC06&#8209;730&#8209;XLG</span>
+          </div>
+          <div class="ba-row ba-after">
+            <span class="ba-label">Ahora</span>
+            <span class="mono">BF5CACC06&#8209;730</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-diagram" aria-label="Relación entre los tres procesos">
+      <div class="flow-box flow-source">02 · SKU, precio, stock</div>
+      <div class="flow-box flow-source">03 · Imágenes por padre</div>
+      <svg class="flow-arrows" viewBox="0 0 200 100" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M20,15 C100,15 100,50 180,50" />
+        <path d="M20,85 C100,85 100,50 180,50" />
+      </svg>
+      <div class="flow-box flow-target">01 · Producto padre + variantes en Shopify</div>
+    </div>
+  </section>
+
+  <!-- REGLAS -->
+  <section class="section section-dark" id="reglas">
+    <div class="section-head">
+      <p class="eyebrow">04 &mdash; Reglas de negocio</p>
+      <h2>Agrupar antes de decidir.</h2>
+      <p class="section-intro">
+        El riesgo real no está en la regla de agrupación &mdash; está en el orden de las operaciones
+        dentro de un mismo lote de sincronización.
+      </p>
+    </div>
+
+    <div class="rule-flow">
+      <div class="rule-step">
+        <span class="rule-step-num">1</span>
+        <div>
+          <h4>Extraer el lote completo</h4>
+          <p>Una sola consulta trae todos los <span class="mono">ItemCode</span> pendientes, con sus UDF de Modelo, Color, Talla y Shopify Product ID.</p>
+        </div>
+      </div>
+      <div class="rule-step">
+        <span class="rule-step-num">2</span>
+        <div>
+          <h4>Agrupar en memoria</h4>
+          <p>Por <span class="mono">U_ARGNS_MOD + U_ARGNS_COL</span>, antes de tocar Shopify. Ninguna variante hermana queda invisible para las demás dentro del mismo lote.</p>
+        </div>
+      </div>
+      <div class="rule-step">
+        <span class="rule-step-num">3</span>
+        <div>
+          <h4>Resolver por grupo</h4>
+          <p>Si el grupo ya tiene Product&nbsp;ID, se agregan variantes. Si no, se crea el padre una vez y el ID se replica a <strong>todas</strong> las filas del grupo en SAP.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-risk">
+      <span class="callout-icon">!</span>
+      <p><strong>Riesgo mitigado:</strong> si dos tallas nuevas del mismo modelo&#8209;color llegan en el mismo lote, una verificación variante&#8209;por&#8209;variante contra SAP en tiempo real no detectaría la relación entre ellas &mdash; resultando en productos padre duplicados. Agrupar primero en memoria elimina esa condición de carrera.</p>
+    </div>
+  </section>
+
+  <!-- PENDIENTES -->
+  <section class="section" id="pendientes">
+    <div class="section-head">
+      <p class="eyebrow">05 &mdash; Estado actual</p>
+      <h2>Lo decidido y lo que falta.</h2>
+    </div>
+
+    <div class="pending-grid" id="pending-grid"></div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <span class="brand-mark small">KS</span>
+      <span>Keno&#8209;Shopy &mdash; análisis interno de arquitectura</span>
+    </div>
+    <div class="footer-meta mono">Lumo by Kenocia · consultoria@kenocia.com</div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
